@@ -69,13 +69,13 @@
 		}
 
 		main {
-			padding: 0;
-			width: 100%;
-			margin: 0;
+			padding: 0 !important;
+			width: 100% !important;
+			margin: 0 !important;
 		}
 
 		.app {
-			min-height: auto;
+			min-height: auto !important;
 		}
 	}
 </style>

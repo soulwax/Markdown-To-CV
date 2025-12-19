@@ -816,12 +816,6 @@ _Location, Date_"
 			display: none !important;
 		}
 
-		:global(main) {
-			padding: 0 !important;
-			margin: 0 !important;
-			width: 100% !important;
-		}
-
 		/* Optimize for PDF output */
 		* {
 			-webkit-print-color-adjust: exact;
