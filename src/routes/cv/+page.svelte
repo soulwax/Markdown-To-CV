@@ -146,13 +146,25 @@ _Seattle, December 17, 2025_`);
 		// Add print-specific class to body for better print styling
 		document.body.classList.add('printing');
 		
+		// Handle print completion using afterprint event
+		const handleAfterPrint = () => {
+			document.body.classList.remove('printing');
+			window.removeEventListener('afterprint', handleAfterPrint);
+		};
+		
+		window.addEventListener('afterprint', handleAfterPrint);
+		
 		// Trigger print dialog
 		window.print();
 		
-		// Remove print class after a delay
+		// Fallback: Remove class after a delay if afterprint event doesn't fire
+		// (Some browsers may not support afterprint event reliably)
 		setTimeout(() => {
-			document.body.classList.remove('printing');
-		}, 1000);
+			if (document.body.classList.contains('printing')) {
+				document.body.classList.remove('printing');
+				window.removeEventListener('afterprint', handleAfterPrint);
+			}
+		}, 5000);
 	}
 
 	function clearInput() {
@@ -788,7 +800,7 @@ _Location, Date_"
 		}
 
 		/* Ensure full page usage */
-		body {
+		:global(body) {
 			background: white;
 			margin: 0;
 			padding: 0;

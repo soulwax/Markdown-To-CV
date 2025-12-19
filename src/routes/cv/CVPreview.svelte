@@ -54,13 +54,11 @@
 		margin-bottom: 0.875rem;
 		color: #1e3a5f; /* Professional navy */
 		font-weight: 600;
-		letter-spacing: 0.01em;
+		letter-spacing: 0.05em; /* Increased spacing for uppercase text */
 		border-bottom: 1.5px solid #e5e7eb;
 		padding-bottom: 0.375rem;
 		page-break-after: avoid;
 		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		font-size: 13pt;
 	}
 
 	:global(.cv-document h2:first-of-type) {
@@ -293,11 +291,13 @@
 		:global(.cv-document h2) {
 			page-break-after: avoid;
 			page-break-inside: avoid;
+			margin-top: 1.5rem; /* Ensure proper spacing in print */
 		}
 
 		:global(.cv-document h3) {
 			page-break-after: avoid;
 			page-break-inside: avoid;
+			margin-top: 1.25rem; /* Ensure proper spacing in print */
 		}
 
 		/* Keep list items together when possible */
@@ -313,15 +313,6 @@
 		:global(.cv-document h3 + p),
 		:global(.cv-document h3 + p + ul) {
 			page-break-inside: avoid;
-		}
-
-		/* Ensure proper spacing in print */
-		:global(.cv-document h2) {
-			margin-top: 1.5rem;
-		}
-
-		:global(.cv-document h3) {
-			margin-top: 1.25rem;
 		}
 
 		/* Optimize colors for print */
