@@ -38,7 +38,7 @@
 		display: flex;
 		flex-direction: column;
 		padding: 1rem;
-		width: 80%;
+		width: 90%;
 		margin: 0 auto;
 		box-sizing: border-box;
 	}

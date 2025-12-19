@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 module.exports = {
 	apps: [
 		{
@@ -13,7 +15,8 @@ module.exports = {
 			env: {
 				NODE_ENV: 'development',
 				PORT: 4173,
-				HOST: '0.0.0.0'
+				HOST: '0.0.0.0',
+				...process.env
 			},
 			error_file: './logs/pm2-error.log',
 			out_file: './logs/pm2-out.log',
