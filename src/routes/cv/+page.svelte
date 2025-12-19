@@ -1,5 +1,17 @@
 <script lang="ts">
-	import { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TextRun } from 'docx';
+	import {
+		AlignmentType,
+		Document,
+		HeadingLevel,
+		Packer,
+		Paragraph,
+		ShadingType,
+		Table,
+		TableCell,
+		TableRow,
+		TextRun,
+		WidthType
+	} from 'docx';
 	import { marked } from 'marked';
 	import { onMount } from 'svelte';
 	import CVPreview from './CVPreview.svelte';
@@ -170,100 +182,24 @@ _Seattle, December 17, 2025_`);
 
 	async function exportToDOCX() {
 		try {
-			// Parse markdown into lines
-			const lines = markdownInput.split('\n');
-			const docElements: (Paragraph | Paragraph[])[] = [];
-
-			for (let i = 0; i < lines.length; i++) {
-				const line = lines[i].trim();
-
-				// Skip empty lines
-				if (!line) {
-					docElements.push(new Paragraph({ text: '' }));
-					continue;
-				}
-
-				// Handle headers
-				if (line.startsWith('# ')) {
-					// H1
-					const text = line.substring(2).trim();
-					docElements.push(
-						new Paragraph({
-							text: text,
-							heading: HeadingLevel.HEADING_1,
-							spacing: { after: 200 }
-						})
-					);
-				} else if (line.startsWith('## ')) {
-					// H2
-					const text = line.substring(3).trim();
-					docElements.push(
-						new Paragraph({
-							text: text.toUpperCase(),
-							heading: HeadingLevel.HEADING_2,
-							spacing: { before: 400, after: 200 }
-						})
-					);
-				} else if (line.startsWith('### ')) {
-					// H3
-					const text = line.substring(4).trim();
-					docElements.push(
-						new Paragraph({
-							text: text,
-							heading: HeadingLevel.HEADING_3,
-							spacing: { before: 300, after: 150 }
-						})
-					);
-				} else if (line.startsWith('- ') || /^\s+- /.test(line)) {
-					// List item - handle indentation for nested lists
-					const indentMatch = line.match(/^(\s*)- /);
-					const indentLevel = indentMatch ? Math.floor(indentMatch[1].length / 2) : 0;
-					const text = line.replace(/^\s*- /, '').trim();
-					// Handle bold text in list items
-					const parts = parseInlineFormatting(text);
-					docElements.push(
-						new Paragraph({
-							children: parts,
-							bullet: { level: indentLevel },
-							spacing: { after: 100 }
-						})
-					);
-				} else if (line.startsWith('---')) {
-					// Horizontal rule - skip or add spacing
-					docElements.push(new Paragraph({ text: '' }));
-				} else if (line.startsWith('_') && line.endsWith('_')) {
-					// Italic text (signature/date)
-					const text = line.substring(1, line.length - 1).trim();
-					docElements.push(
-						new Paragraph({
-							children: [
-								new TextRun({
-									text: text,
-									italics: true
-								})
-							],
-							alignment: AlignmentType.RIGHT,
-							spacing: { before: 400 }
-						})
-					);
-				} else {
-					// Regular paragraph
-					const parts = parseInlineFormatting(line);
-					docElements.push(
-						new Paragraph({
-							children: parts,
-							spacing: { after: 150 }
-						})
-					);
-				}
-			}
+			// Parse markdown to HTML first to handle all markdown features
+			const html = marked.parse(markdownInput);
+			
+			// Create a temporary DOM element to parse HTML
+			const tempDiv = document.createElement('div');
+			tempDiv.innerHTML = String(html);
+			
+			const docElements: (Paragraph | Table)[] = [];
+			
+			// Process all child nodes
+			processNodeList(tempDiv.childNodes, docElements);
 
 			// Create the document
 			const doc = new Document({
 				sections: [
 					{
 						properties: {},
-						children: docElements.flat()
+						children: docElements
 					}
 				]
 			});
@@ -282,6 +218,402 @@ _Seattle, December 17, 2025_`);
 			console.error('Error exporting to DOCX:', error);
 			alert('Error exporting to DOCX. Please try again.');
 		}
+	}
+
+	function processNodeList(
+		nodes: NodeListOf<ChildNode> | ChildNode[],
+		docElements: (Paragraph | Table)[]
+	) {
+		for (let i = 0; i < nodes.length; i++) {
+			const node = nodes[i];
+			
+			if (node.nodeType === Node.TEXT_NODE) {
+				const text = node.textContent?.trim();
+				if (text) {
+					docElements.push(
+						new Paragraph({
+							children: parseHTMLText(text),
+							spacing: { after: 150 }
+						})
+					);
+				}
+			} else if (node.nodeType === Node.ELEMENT_NODE) {
+				const element = node as HTMLElement;
+				const tagName = element.tagName?.toLowerCase();
+
+				switch (tagName) {
+					case 'h1':
+						docElements.push(
+							new Paragraph({
+								children: parseHTMLInline(element),
+								heading: HeadingLevel.HEADING_1,
+								spacing: { after: 200 }
+							})
+						);
+						break;
+					case 'h2':
+						const h2Runs = parseHTMLInline(element).map((run) => {
+							if (run instanceof TextRun) {
+								// Create new TextRun with uppercase text, preserving formatting
+								const runOptions: any = { text: (run as any).text?.toUpperCase() || '' };
+								if ((run as any).bold) runOptions.bold = true;
+								if ((run as any).italics) runOptions.italics = true;
+								return new TextRun(runOptions);
+							}
+							return run;
+						});
+						docElements.push(
+							new Paragraph({
+								children: h2Runs,
+								heading: HeadingLevel.HEADING_2,
+								spacing: { before: 400, after: 200 }
+							})
+						);
+						break;
+					case 'h3':
+						docElements.push(
+							new Paragraph({
+								children: parseHTMLInline(element),
+								heading: HeadingLevel.HEADING_3,
+								spacing: { before: 300, after: 150 }
+							})
+						);
+						break;
+					case 'h4':
+						docElements.push(
+							new Paragraph({
+								children: parseHTMLInline(element),
+								heading: HeadingLevel.HEADING_4,
+								spacing: { before: 200, after: 100 }
+							})
+						);
+						break;
+					case 'h5':
+						docElements.push(
+							new Paragraph({
+								children: parseHTMLInline(element),
+								heading: HeadingLevel.HEADING_5,
+								spacing: { before: 150, after: 100 }
+							})
+						);
+						break;
+					case 'h6':
+						docElements.push(
+							new Paragraph({
+								children: parseHTMLInline(element),
+								heading: HeadingLevel.HEADING_6,
+								spacing: { before: 100, after: 100 }
+							})
+						);
+						break;
+					case 'p':
+						const alignment = getAlignment(element);
+						docElements.push(
+							new Paragraph({
+								children: parseHTMLInline(element),
+								spacing: { after: 150 },
+								alignment
+							})
+						);
+						break;
+					case 'ul':
+					case 'ol':
+						processList(element, docElements, tagName === 'ol');
+						break;
+					case 'blockquote':
+						docElements.push(
+							new Paragraph({
+								children: parseHTMLInline(element),
+								indent: { left: 400 },
+								border: {
+									left: {
+										color: '2563eb',
+										size: 4,
+										style: 'single'
+									}
+								},
+								spacing: { before: 200, after: 200 }
+							})
+						);
+						break;
+					case 'pre':
+					case 'code':
+						if (tagName === 'pre') {
+							// Code block
+							const codeText = element.textContent || '';
+							docElements.push(
+								new Paragraph({
+									children: [
+										new TextRun({
+											text: codeText,
+											font: 'Courier New',
+											color: 'dc2626'
+										})
+									],
+									shading: {
+										type: ShadingType.SOLID,
+										color: 'f3f4f6'
+									},
+									spacing: { before: 200, after: 200 }
+								})
+							);
+						} else {
+							// Inline code
+							const codeText = element.textContent || '';
+							docElements.push(
+								new Paragraph({
+									children: [
+										new TextRun({
+											text: codeText,
+											font: 'Courier New',
+											color: 'dc2626'
+										})
+									],
+									spacing: { after: 150 }
+								})
+							);
+						}
+						break;
+					case 'table':
+						const table = parseTable(element);
+						if (table) {
+							docElements.push(table);
+						}
+						break;
+					case 'hr':
+						docElements.push(new Paragraph({ text: '' }));
+						break;
+					case 'br':
+						docElements.push(new Paragraph({ text: '' }));
+						break;
+					case 'div':
+					case 'section':
+						// Process children recursively
+						processNodeList(Array.from(element.childNodes), docElements);
+						break;
+					case 'strong':
+					case 'b':
+					case 'em':
+					case 'i':
+					case 'u':
+					case 's':
+					case 'del':
+					case 'strike':
+					case 'a':
+					case 'span':
+						// These are inline elements, should be handled by parseHTMLInline
+						// If they appear as top-level, wrap in paragraph
+						docElements.push(
+							new Paragraph({
+								children: parseHTMLInline(element),
+								spacing: { after: 150 }
+							})
+						);
+						break;
+					case 'img':
+						// Images - add alt text or src as text
+						const alt = element.getAttribute('alt') || element.getAttribute('src') || '';
+						if (alt) {
+							docElements.push(
+								new Paragraph({
+									children: [
+										new TextRun({
+											text: `[Image: ${alt}]`,
+											italics: true
+										})
+									],
+									spacing: { after: 150 }
+								})
+							);
+						}
+						break;
+					default:
+						// For unknown elements, process children
+						processNodeList(Array.from(element.childNodes), docElements);
+				}
+			}
+		}
+	}
+
+	function processList(
+		element: HTMLElement,
+		docElements: (Paragraph | Table)[],
+		ordered: boolean
+	) {
+		const items = element.querySelectorAll('li');
+		items.forEach((item, index) => {
+			// Calculate indentation level
+			let level = 0;
+			let parent = item.parentElement;
+			while (parent && parent !== element) {
+				if (parent.tagName.toLowerCase() === 'ul' || parent.tagName.toLowerCase() === 'ol') {
+					level++;
+				}
+				parent = parent.parentElement;
+			}
+
+			docElements.push(
+				new Paragraph({
+					children: parseHTMLInline(item),
+					bullet: ordered ? undefined : { level },
+					numbering: ordered
+						? {
+								reference: 'default-numbering',
+								level: level
+						  }
+						: undefined,
+					spacing: { after: 100 }
+				})
+			);
+		});
+	}
+
+	function parseHTMLInline(element: HTMLElement): TextRun[] {
+		const runs: TextRun[] = [];
+		const nodes = element.childNodes;
+
+		for (let i = 0; i < nodes.length; i++) {
+			const node = nodes[i];
+
+			if (node.nodeType === Node.TEXT_NODE) {
+				const text = node.textContent || '';
+				if (text.trim()) {
+					runs.push(new TextRun({ text }));
+				}
+			} else if (node.nodeType === Node.ELEMENT_NODE) {
+				const el = node as HTMLElement;
+				const tagName = el.tagName?.toLowerCase();
+				const text = el.textContent || '';
+
+				switch (tagName) {
+					case 'strong':
+					case 'b':
+						runs.push(new TextRun({ text, bold: true }));
+						break;
+					case 'em':
+					case 'i':
+						runs.push(new TextRun({ text, italics: true }));
+						break;
+					case 'u':
+						runs.push(new TextRun({ text, underline: {} }));
+						break;
+					case 's':
+					case 'del':
+					case 'strike':
+						runs.push(new TextRun({ text, strike: true }));
+						break;
+					case 'code':
+						runs.push(
+							new TextRun({
+								text,
+								font: 'Courier New',
+								color: 'dc2626'
+							})
+						);
+						break;
+					case 'a':
+						const href = el.getAttribute('href') || '';
+						const linkText = text || href;
+						runs.push(
+							new TextRun({
+								text: linkText,
+								color: '2563eb',
+								underline: {}
+							})
+						);
+						break;
+					case 'br':
+						runs.push(new TextRun({ text: '\n', break: 1 }));
+						break;
+					case 'span':
+					case 'div':
+						// Recursively parse nested elements
+						runs.push(...parseHTMLInline(el));
+						break;
+					default:
+						// For unknown inline elements, just get text
+						if (text) {
+							runs.push(new TextRun({ text }));
+						}
+				}
+			}
+		}
+
+		return runs.length > 0 ? runs : [new TextRun({ text: element.textContent || '' })];
+	}
+
+	function parseHTMLText(text: string): TextRun[] {
+		// Parse markdown-style formatting in plain text
+		return parseInlineFormatting(text);
+	}
+
+	function parseTable(element: HTMLElement): Table | null {
+		try {
+			const rows = element.querySelectorAll('tr');
+			if (rows.length === 0) return null;
+
+			const tableRows: TableRow[] = [];
+			let isHeader = true;
+
+			rows.forEach((row) => {
+				const cells = row.querySelectorAll('td, th');
+				if (cells.length === 0) return;
+
+				const tableCells = Array.from(cells).map((cell) => {
+					const cellElement = cell as HTMLElement;
+					const isHeaderCell = cellElement.tagName.toLowerCase() === 'th';
+					const cellRuns = parseHTMLInline(cellElement);
+
+					return new TableCell({
+						children: [
+							new Paragraph({
+								children: cellRuns.length > 0 ? cellRuns : [new TextRun({ text: '' })]
+							})
+						],
+						shading: isHeaderCell
+							? {
+									type: ShadingType.SOLID,
+									color: 'f9fafb'
+							  }
+							: undefined
+					});
+				});
+
+				tableRows.push(new TableRow({ children: tableCells }));
+
+				// First row is typically header
+				if (isHeader) {
+					isHeader = false;
+				}
+			});
+
+			return new Table({
+				rows: tableRows,
+				width: {
+					size: 100,
+					type: WidthType.PERCENTAGE
+				}
+			});
+		} catch (error) {
+			console.error('Error parsing table:', error);
+			return null;
+		}
+	}
+
+	function getAlignment(element: HTMLElement) {
+		const style = element.getAttribute('style') || '';
+		const align = element.getAttribute('align') || '';
+
+		if (style.includes('text-align: right') || align === 'right') {
+			return AlignmentType.RIGHT;
+		}
+		if (style.includes('text-align: center') || align === 'center') {
+			return AlignmentType.CENTER;
+		}
+		if (style.includes('text-align: justify') || align === 'justify') {
+			return AlignmentType.JUSTIFIED;
+		}
+		return AlignmentType.LEFT;
 	}
 
 	function parseInlineFormatting(text: string): TextRun[] {
