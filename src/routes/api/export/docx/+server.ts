@@ -4,6 +4,8 @@ import { json } from '@sveltejs/kit';
 import { Packer } from 'docx';
 import { marked } from 'marked';
 import type { RequestHandler } from './$types';
+import { db } from '$lib/server/db/index.js';
+import { inputDocument, outputDocument } from '$lib/server/db/schema.js';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
