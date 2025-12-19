@@ -5,6 +5,7 @@ import { saveOutputFile } from '$lib/server/export-utils.js';
 import { json } from '@sveltejs/kit';
 import { Packer } from 'docx';
 import { marked } from 'marked';
+import { basename } from 'path';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -32,7 +33,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// Save to output directory
 		const savedPath = await saveOutputFile('docx', docxBuffer);
-		const fileName = savedPath.split('/').pop() || 'output.docx';
+		const fileName = basename(savedPath) || 'output.docx';
 		const fileSize = docxBuffer.length;
 
 		// Save output document to database

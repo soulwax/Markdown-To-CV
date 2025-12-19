@@ -3,9 +3,9 @@
  * Test database connection
  * Usage: pnpm tsx scripts/test-db-connection.ts
  */
-import postgres from 'postgres';
 import { config } from 'dotenv';
 import { resolve } from 'path';
+import postgres from 'postgres';
 
 // Load .env file if it exists
 config({ path: resolve(process.cwd(), '.env') });

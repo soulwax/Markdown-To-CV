@@ -3,10 +3,12 @@ import { inputDocument, outputDocument } from '$lib/server/db/schema.js';
 import { saveOutputFile } from '$lib/server/export-utils.js';
 import { json } from '@sveltejs/kit';
 import { marked } from 'marked';
+import { basename } from 'path';
 import { chromium } from 'playwright';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
+	let browser;
 	try {
 		const { markdown } = await request.json();
 
@@ -24,7 +26,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		const html = marked.parse(markdown);
 
 		// Launch browser
-		const browser = await chromium.launch();
+		browser = await chromium.launch();
 		const page = await browser.newPage();
 
 		// Set content with hyper-modern styling
@@ -293,12 +295,13 @@ export const POST: RequestHandler = async ({ request }) => {
 			preferCSSPageSize: true
 		});
 
-		await browser.close();
-
 		// Save to output directory
 		const savedPath = await saveOutputFile('pdf', pdfBuffer);
-		const fileName = savedPath.split('/').pop() || 'output.pdf';
+		const fileName = basename(savedPath) || 'output.pdf';
 		const fileSize = pdfBuffer.length;
+
+		// Close browser after successful PDF generation
+		await browser.close();
 
 		// Save output document to database
 		await db.insert(outputDocument).values({
@@ -316,6 +319,16 @@ export const POST: RequestHandler = async ({ request }) => {
 		});
 	} catch (error) {
 		console.error('Error generating PDF:', error);
+		
+		// Ensure browser is closed even if an error occurs
+		if (browser) {
+			try {
+				await browser.close();
+			} catch (closeError) {
+				console.error('Error closing browser:', closeError);
+			}
+		}
+		
 		return json(
 			{
 				error: 'Failed to generate PDF',
