@@ -214,15 +214,17 @@ _Seattle, December 17, 2025_`);
 							spacing: { before: 300, after: 150 }
 						})
 					);
-				} else if (line.startsWith('- ')) {
-					// List item
-					const text = line.substring(2).trim();
+				} else if (line.startsWith('- ') || /^\s+- /.test(line)) {
+					// List item - handle indentation for nested lists
+					const indentMatch = line.match(/^(\s*)- /);
+					const indentLevel = indentMatch ? Math.floor(indentMatch[1].length / 2) : 0;
+					const text = line.replace(/^\s*- /, '').trim();
 					// Handle bold text in list items
 					const parts = parseInlineFormatting(text);
 					docElements.push(
 						new Paragraph({
 							children: parts,
-							bullet: { level: 0 },
+							bullet: { level: indentLevel },
 							spacing: { after: 100 }
 						})
 					);
