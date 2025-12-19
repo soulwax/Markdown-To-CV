@@ -771,10 +771,12 @@ _Location, Date_"
 			display: none !important;
 		}
 
+		/* Show only the preview panel content */
 		.preview-panel {
 			box-shadow: none;
 			border: none;
 			background: white;
+			display: block !important;
 		}
 
 		.panel-header {
@@ -799,11 +801,25 @@ _Location, Date_"
 			display: block;
 		}
 
-		/* Ensure full page usage */
+		/* Ensure full page usage - hide everything except CV content */
 		:global(body) {
-			background: white;
-			margin: 0;
-			padding: 0;
+			background: white !important;
+			margin: 0 !important;
+			padding: 0 !important;
+			background-image: none !important;
+			background-color: white !important;
+		}
+
+		/* Hide root layout elements */
+		:global(.app > header),
+		:global(.app > footer) {
+			display: none !important;
+		}
+
+		:global(main) {
+			padding: 0 !important;
+			margin: 0 !important;
+			width: 100% !important;
 		}
 
 		/* Optimize for PDF output */

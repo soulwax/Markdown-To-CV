@@ -60,4 +60,22 @@
 			padding: 12px 0;
 		}
 	}
+
+	/* Hide layout elements during print/PDF export */
+	@media print {
+		:global(header),
+		footer {
+			display: none !important;
+		}
+
+		main {
+			padding: 0;
+			width: 100%;
+			margin: 0;
+		}
+
+		.app {
+			min-height: auto;
+		}
+	}
 </style>

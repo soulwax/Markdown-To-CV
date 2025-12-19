@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import logo from '$lib/images/svelte-logo.svg';
 	import github from '$lib/images/github.svg';
+	import logo from '$lib/images/svelte-logo.svg';
 </script>
 
 <header>
@@ -21,7 +21,7 @@
 				<a href={resolve('/')}>Home</a>
 			</li>
 			<li aria-current={page.url.pathname.startsWith('/cv') ? 'page' : undefined}>
-				<a href={resolve('/cv')}>CV Converter</a>
+				<a href={resolve('/cv')}>Markdown to CV</a>
 			</li>
 			<li aria-current={page.url.pathname === '/about' ? 'page' : undefined}>
 				<a href={resolve('/about')}>About</a>
