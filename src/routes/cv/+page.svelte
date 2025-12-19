@@ -286,11 +286,12 @@ _Seattle, December 17, 2025_`);
 
 	function parseInlineFormatting(text: string): TextRun[] {
 		const parts: TextRun[] = [];
-		let currentIndex = 0;
 
 		// Regular expression to match **bold**, *italic*, or plain text
-		const regex = /(\*\*([^*]+)\*\*|\*([^*]+)\*|([^*]+))/g;
+		// Updated to handle cases where formatting might be adjacent
+		const regex = /(\*\*([^*]+)\*\*|\*([^*]+)\*|([^*]+?)(?=\*\*|\*|$))/g;
 		let match;
+		let lastIndex = 0;
 
 		while ((match = regex.exec(text)) !== null) {
 			if (match[2]) {
@@ -302,22 +303,27 @@ _Seattle, December 17, 2025_`);
 					})
 				);
 			} else if (match[3]) {
-				// Italic text *text*
+				// Italic text *text* (but not if it's part of **)
 				parts.push(
 					new TextRun({
 						text: match[3],
 						italics: true
 					})
 				);
-			} else if (match[4]) {
+			} else if (match[4] && match[4].trim()) {
 				// Plain text
 				parts.push(new TextRun({ text: match[4] }));
 			}
+			lastIndex = match.index + match[0].length;
 		}
 
-		// If no matches, return the text as-is
-		if (parts.length === 0) {
-			parts.push(new TextRun({ text }));
+		// If no matches or there's remaining text, return the text as-is
+		if (parts.length === 0 || lastIndex < text.length) {
+			if (parts.length === 0) {
+				parts.push(new TextRun({ text }));
+			} else if (lastIndex < text.length) {
+				parts.push(new TextRun({ text: text.substring(lastIndex) }));
+			}
 		}
 
 		return parts;
