@@ -1,9 +1,9 @@
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
-import devtoolsJson from 'vite-plugin-devtools-json';
-import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vitest/config';
-import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
+import tailwindcss from '@tailwindcss/vite';
+import { playwright } from '@vitest/browser-playwright';
+import devtoolsJson from 'vite-plugin-devtools-json';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	plugins: [
@@ -12,7 +12,16 @@ export default defineConfig({
 		devtoolsJson(),
 		paraglideVitePlugin({ project: './project.inlang', outdir: './src/lib/paraglide' })
 	],
-
+	preview: {
+		port: Number(process.env.PORT) || 4173,
+		host: true,
+		allowedHosts: ['127.0.0.1', 'localhost', 'stars.soulwax.dev', '*.soulwax.dev', '*.nandcore.com', 'cv.nandcore.com', 'www.cv.nandcore.com']
+	},
+	server: {
+		port: Number(process.env.PORT) || 4173,
+		host: true,
+		allowedHosts: ['127.0.0.1', 'localhost', 'stars.soulwax.dev', '*.soulwax.dev', '*.nandcore.com', 'cv.nandcore.com', 'www.cv.nandcore.com']
+	},
 	test: {
 		expect: { requireAssertions: true },
 
