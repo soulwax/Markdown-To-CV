@@ -3,6 +3,8 @@ import { json } from '@sveltejs/kit';
 import { marked } from 'marked';
 import { chromium } from 'playwright';
 import type { RequestHandler } from './$types';
+import { db } from '$lib/server/db/index.js';
+import { inputDocument, outputDocument } from '$lib/server/db/schema.js';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
@@ -11,6 +13,12 @@ export const POST: RequestHandler = async ({ request }) => {
 		if (!markdown || typeof markdown !== 'string') {
 			return json({ error: 'Markdown content is required' }, { status: 400 });
 		}
+
+		// Save input document to database
+		const [savedInput] = await db
+			.insert(inputDocument)
+			.values({ markdown })
+			.returning();
 
 		// Convert markdown to HTML
 		const html = marked.parse(markdown);
@@ -153,10 +161,21 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// Save to output directory
 		const savedPath = await saveOutputFile('pdf', pdfBuffer);
+		const fileName = savedPath.split('/').pop() || 'output.pdf';
+		const fileSize = pdfBuffer.length;
+
+		// Save output document to database
+		await db.insert(outputDocument).values({
+			inputDocumentId: savedInput.id,
+			type: 'pdf',
+			filePath: savedPath,
+			fileName,
+			fileSize
+		});
 
 		return json({
 			success: true,
-			filename: savedPath.split('/').pop() || 'output.pdf',
+			filename: fileName,
 			path: savedPath
 		});
 	} catch (error) {
