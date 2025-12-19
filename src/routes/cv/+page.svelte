@@ -468,6 +468,35 @@ _Seattle, December 17, 2025_`);
 		});
 	}
 
+	/**
+	 * Applies formatting properties to existing TextRuns
+	 * Merges formatting so nested elements can have multiple formats (e.g., bold + italic)
+	 */
+	function applyFormatting(
+		runs: TextRun[],
+		formatting: { bold?: boolean; italics?: boolean; underline?: {}; strike?: boolean }
+	): TextRun[] {
+		return runs.map((run) => {
+			const runOptions: any = { ...(run as any) };
+			
+			// Merge formatting properties
+			if (formatting.bold !== undefined) {
+				runOptions.bold = formatting.bold;
+			}
+			if (formatting.italics !== undefined) {
+				runOptions.italics = formatting.italics;
+			}
+			if (formatting.underline !== undefined) {
+				runOptions.underline = formatting.underline;
+			}
+			if (formatting.strike !== undefined) {
+				runOptions.strike = formatting.strike;
+			}
+			
+			return new TextRun(runOptions);
+		});
+	}
+
 	function parseHTMLInline(element: HTMLElement): TextRun[] {
 		const runs: TextRun[] = [];
 		const nodes = element.childNodes;
@@ -488,39 +517,70 @@ _Seattle, December 17, 2025_`);
 				switch (tagName) {
 					case 'strong':
 					case 'b':
-						runs.push(new TextRun({ text, bold: true }));
+						// Recursively parse nested elements and apply bold formatting
+						const boldRuns = parseHTMLInline(el);
+						runs.push(...applyFormatting(boldRuns, { bold: true }));
 						break;
 					case 'em':
 					case 'i':
-						runs.push(new TextRun({ text, italics: true }));
+						// Recursively parse nested elements and apply italic formatting
+						const italicRuns = parseHTMLInline(el);
+						runs.push(...applyFormatting(italicRuns, { italics: true }));
 						break;
 					case 'u':
-						runs.push(new TextRun({ text, underline: {} }));
+						// Recursively parse nested elements and apply underline formatting
+						const underlineRuns = parseHTMLInline(el);
+						runs.push(...applyFormatting(underlineRuns, { underline: {} }));
 						break;
 					case 's':
 					case 'del':
 					case 'strike':
-						runs.push(new TextRun({ text, strike: true }));
+						// Recursively parse nested elements and apply strikethrough formatting
+						const strikeRuns = parseHTMLInline(el);
+						runs.push(...applyFormatting(strikeRuns, { strike: true }));
 						break;
 					case 'code':
+						// Code elements should preserve formatting but use monospace font
+						const codeRuns = parseHTMLInline(el);
 						runs.push(
-							new TextRun({
-								text,
-								font: 'Courier New',
-								color: 'dc2626'
+							...codeRuns.map((run) => {
+								const runOptions: any = { ...(run as any) };
+								runOptions.font = 'Courier New';
+								runOptions.color = 'dc2626';
+								return new TextRun(runOptions);
 							})
 						);
 						break;
 					case 'a':
+						// Links should preserve nested formatting
 						const href = el.getAttribute('href') || '';
-						const linkText = text || href;
-						runs.push(
-							new TextRun({
-								text: linkText,
-								color: '2563eb',
-								underline: {}
-							})
-						);
+						const linkRuns = parseHTMLInline(el);
+						// Check if link has meaningful content (not just empty/whitespace)
+						const hasContent = linkRuns.some((run) => {
+							const runText = (run as any).text || '';
+							return runText.trim().length > 0;
+						});
+						
+						if (!hasContent && href) {
+							// If no meaningful content, use href as text
+							runs.push(
+								new TextRun({
+									text: href,
+									color: '2563eb',
+									underline: {}
+								})
+							);
+						} else {
+							// Apply link formatting to all runs
+							runs.push(
+								...linkRuns.map((run) => {
+									const runOptions: any = { ...(run as any) };
+									runOptions.color = '2563eb';
+									runOptions.underline = {};
+									return new TextRun(runOptions);
+								})
+							);
+						}
 						break;
 					case 'br':
 						runs.push(new TextRun({ text: '\n', break: 1 }));
@@ -531,8 +591,10 @@ _Seattle, December 17, 2025_`);
 						runs.push(...parseHTMLInline(el));
 						break;
 					default:
-						// For unknown inline elements, just get text
-						if (text) {
+						// For unknown inline elements, recursively parse if they have children
+						if (el.childNodes.length > 0) {
+							runs.push(...parseHTMLInline(el));
+						} else if (text) {
 							runs.push(new TextRun({ text }));
 						}
 				}
