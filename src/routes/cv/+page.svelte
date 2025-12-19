@@ -1,9 +1,7 @@
 <script lang="ts">
 	import {
 		AlignmentType,
-		Document,
 		HeadingLevel,
-		Packer,
 		Paragraph,
 		ShadingType,
 		Table,
@@ -155,65 +153,46 @@ _Seattle, December 17, 2025_`);
 	let showPreview = $state(true);
 	let viewMode = $state<'split' | 'editor' | 'preview'>('split');
 
-	function exportToPDF() {
-		// Add print-specific class to body for better print styling
-		document.body.classList.add('printing');
-		
-		// Handle print completion using afterprint event
-		const handleAfterPrint = () => {
-			document.body.classList.remove('printing');
-			window.removeEventListener('afterprint', handleAfterPrint);
-		};
-		
-		window.addEventListener('afterprint', handleAfterPrint);
-		
-		// Trigger print dialog
-		window.print();
-		
-		// Fallback: Remove class after a delay if afterprint event doesn't fire
-		// (Some browsers may not support afterprint event reliably)
-		setTimeout(() => {
-			if (document.body.classList.contains('printing')) {
-				document.body.classList.remove('printing');
-				window.removeEventListener('afterprint', handleAfterPrint);
+	async function exportToPDF() {
+		try {
+			const response = await fetch('/api/export/pdf', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ markdown: markdownInput })
+			});
+
+			if (!response.ok) {
+				const error = await response.json();
+				throw new Error(error.message || 'Failed to generate PDF');
 			}
-		}, 5000);
+
+			const result = await response.json();
+			alert(`PDF saved successfully: ${result.filename}`);
+		} catch (error) {
+			console.error('Error exporting to PDF:', error);
+			alert('Error exporting to PDF. Please try again.');
+		}
 	}
 
 	async function exportToDOCX() {
 		try {
-			// Parse markdown to HTML first to handle all markdown features
-			const html = marked.parse(markdownInput);
-			
-			// Create a temporary DOM element to parse HTML
-			const tempDiv = document.createElement('div');
-			tempDiv.innerHTML = String(html);
-			
-			const docElements: (Paragraph | Table)[] = [];
-			
-			// Process all child nodes
-			processNodeList(tempDiv.childNodes, docElements);
-
-			// Create the document
-			const doc = new Document({
-				sections: [
-					{
-						properties: {},
-						children: docElements
-					}
-				]
+			const response = await fetch('/api/export/docx', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ markdown: markdownInput })
 			});
 
-			// Generate and download the DOCX file
-			const blob = await Packer.toBlob(doc);
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = 'cv.docx';
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
+			if (!response.ok) {
+				const error = await response.json();
+				throw new Error(error.message || 'Failed to generate DOCX');
+			}
+
+			const result = await response.json();
+			alert(`DOCX saved successfully: ${result.filename}`);
 		} catch (error) {
 			console.error('Error exporting to DOCX:', error);
 			alert('Error exporting to DOCX. Please try again.');
