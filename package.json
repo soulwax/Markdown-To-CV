@@ -87,6 +87,7 @@
 	},
 	"dependencies": {
 		"@node-rs/argon2": "^2.0.2",
+		"docx": "^9.5.1",
 		"marked": "^17.0.1",
 		"postgres": "^3.4.7"
 	}

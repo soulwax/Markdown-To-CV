@@ -2,6 +2,7 @@
 	import { marked } from 'marked';
 	import { onMount } from 'svelte';
 	import CVPreview from './CVPreview.svelte';
+	import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
 
 	// Configure marked for synchronous parsing
 	marked.setOptions({
@@ -165,6 +166,159 @@ _Seattle, December 17, 2025_`);
 				window.removeEventListener('afterprint', handleAfterPrint);
 			}
 		}, 5000);
+	}
+
+	async function exportToDOCX() {
+		try {
+			// Parse markdown into lines
+			const lines = markdownInput.split('\n');
+			const docElements: (Paragraph | Paragraph[])[] = [];
+
+			for (let i = 0; i < lines.length; i++) {
+				const line = lines[i].trim();
+
+				// Skip empty lines
+				if (!line) {
+					docElements.push(new Paragraph({ text: '' }));
+					continue;
+				}
+
+				// Handle headers
+				if (line.startsWith('# ')) {
+					// H1
+					const text = line.substring(2).trim();
+					docElements.push(
+						new Paragraph({
+							text: text,
+							heading: HeadingLevel.HEADING_1,
+							spacing: { after: 200 }
+						})
+					);
+				} else if (line.startsWith('## ')) {
+					// H2
+					const text = line.substring(3).trim();
+					docElements.push(
+						new Paragraph({
+							text: text.toUpperCase(),
+							heading: HeadingLevel.HEADING_2,
+							spacing: { before: 400, after: 200 }
+						})
+					);
+				} else if (line.startsWith('### ')) {
+					// H3
+					const text = line.substring(4).trim();
+					docElements.push(
+						new Paragraph({
+							text: text,
+							heading: HeadingLevel.HEADING_3,
+							spacing: { before: 300, after: 150 }
+						})
+					);
+				} else if (line.startsWith('- ')) {
+					// List item
+					const text = line.substring(2).trim();
+					// Handle bold text in list items
+					const parts = parseInlineFormatting(text);
+					docElements.push(
+						new Paragraph({
+							children: parts,
+							bullet: { level: 0 },
+							spacing: { after: 100 }
+						})
+					);
+				} else if (line.startsWith('---')) {
+					// Horizontal rule - skip or add spacing
+					docElements.push(new Paragraph({ text: '' }));
+				} else if (line.startsWith('_') && line.endsWith('_')) {
+					// Italic text (signature/date)
+					const text = line.substring(1, line.length - 1).trim();
+					docElements.push(
+						new Paragraph({
+							children: [
+								new TextRun({
+									text: text,
+									italics: true
+								})
+							],
+							alignment: AlignmentType.RIGHT,
+							spacing: { before: 400 }
+						})
+					);
+				} else {
+					// Regular paragraph
+					const parts = parseInlineFormatting(line);
+					docElements.push(
+						new Paragraph({
+							children: parts,
+							spacing: { after: 150 }
+						})
+					);
+				}
+			}
+
+			// Create the document
+			const doc = new Document({
+				sections: [
+					{
+						properties: {},
+						children: docElements.flat()
+					}
+				]
+			});
+
+			// Generate and download the DOCX file
+			const blob = await Packer.toBlob(doc);
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = 'cv.docx';
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error('Error exporting to DOCX:', error);
+			alert('Error exporting to DOCX. Please try again.');
+		}
+	}
+
+	function parseInlineFormatting(text: string): TextRun[] {
+		const parts: TextRun[] = [];
+		let currentIndex = 0;
+
+		// Regular expression to match **bold**, *italic*, or plain text
+		const regex = /(\*\*([^*]+)\*\*|\*([^*]+)\*|([^*]+))/g;
+		let match;
+
+		while ((match = regex.exec(text)) !== null) {
+			if (match[2]) {
+				// Bold text **text**
+				parts.push(
+					new TextRun({
+						text: match[2],
+						bold: true
+					})
+				);
+			} else if (match[3]) {
+				// Italic text *text*
+				parts.push(
+					new TextRun({
+						text: match[3],
+						italics: true
+					})
+				);
+			} else if (match[4]) {
+				// Plain text
+				parts.push(new TextRun({ text: match[4] }));
+			}
+		}
+
+		// If no matches, return the text as-is
+		if (parts.length === 0) {
+			parts.push(new TextRun({ text }));
+		}
+
+		return parts;
 	}
 
 	function clearInput() {
@@ -394,6 +548,16 @@ _Seattle, December 17, 2025_`;
 				</svg>
 				<span>Download</span>
 			</button>
+			<button onclick={exportToDOCX} class="btn btn-docx" title="Export to DOCX">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+					<polyline points="14 2 14 8 20 8"></polyline>
+					<line x1="16" y1="13" x2="8" y2="13"></line>
+					<line x1="16" y1="17" x2="8" y2="17"></line>
+					<polyline points="10 9 9 9 8 9"></polyline>
+				</svg>
+				<span>Export DOCX</span>
+			</button>
 			<button onclick={exportToPDF} class="btn btn-primary" title="Export to PDF">
 				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -577,6 +741,20 @@ _Location, Date_"
 	.btn-icon.active {
 		background: rgba(64, 117, 166, 0.1);
 		color: #4075a6;
+	}
+
+	.btn-docx {
+		background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+		color: white;
+		padding: 0.625rem 1.5rem;
+		box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+	}
+
+	.btn-docx:hover {
+		background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+		box-shadow: 0 4px 8px rgba(37, 99, 235, 0.4);
+		color: white;
+		transform: translateY(-2px);
 	}
 
 	.btn-primary {

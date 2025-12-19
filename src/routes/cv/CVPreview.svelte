@@ -58,7 +58,11 @@
 		border-bottom: 1.5px solid #e5e7eb;
 		padding-bottom: 0.375rem;
 		page-break-after: avoid;
+		page-break-inside: avoid;
 		text-transform: uppercase;
+		/* Keep header with at least some following content */
+		orphans: 3;
+		widows: 3;
 	}
 
 	:global(.cv-document h2:first-of-type) {
@@ -265,6 +269,9 @@
 		@page {
 			size: A4;
 			margin: 0;
+			/* Set minimum lines for orphans and widows at page level */
+			orphans: 3;
+			widows: 3;
 		}
 
 		.cv-container {
@@ -278,7 +285,6 @@
 			padding: 25mm 25mm; /* Maintain 1 inch margins for print */
 			box-shadow: none;
 			border-radius: 0;
-			page-break-inside: avoid;
 			background: white;
 		}
 
@@ -288,10 +294,28 @@
 			page-break-inside: avoid;
 		}
 
+		/* Intelligent page breaks for section headers (h2) */
 		:global(.cv-document h2) {
-			page-break-after: avoid;
+			/* Never split a header across pages */
 			page-break-inside: avoid;
+			/* Try to keep header with following content */
+			page-break-after: avoid;
+			/* Allow break before header if needed (prevents orphaned headers at bottom) */
+			page-break-before: auto;
 			margin-top: 1.5rem; /* Ensure proper spacing in print */
+			/* Ensure at least 3 lines stay together */
+			orphans: 3;
+			widows: 3;
+		}
+
+		/* Prevent content from breaking away from its header */
+		/* Keep first element after h2 with the header - prevents orphaned headers */
+		:global(.cv-document h2 + p),
+		:global(.cv-document h2 + ul),
+		:global(.cv-document h2 + ol),
+		:global(.cv-document h2 + h3) {
+			page-break-before: avoid;
+			orphans: 3;
 		}
 
 		:global(.cv-document h3) {
@@ -313,6 +337,20 @@
 		:global(.cv-document h3 + p),
 		:global(.cv-document h3 + p + ul) {
 			page-break-inside: avoid;
+			orphans: 2;
+			widows: 2;
+		}
+
+		/* Prevent orphaned lines at page breaks for better readability */
+		:global(.cv-document p) {
+			orphans: 2;
+			widows: 2;
+		}
+
+		/* Ensure horizontal rules don't create awkward breaks */
+		:global(.cv-document hr) {
+			page-break-after: avoid;
+			page-break-before: auto;
 		}
 
 		/* Optimize colors for print */
