@@ -164,15 +164,22 @@ _Seattle, December 17, 2025_`);
 			});
 
 			if (!response.ok) {
-				const error = await response.json();
-				throw new Error(error.message || 'Failed to generate PDF');
+				let errorMessage = 'Failed to generate PDF';
+				try {
+					const error = await response.json();
+					errorMessage = error.message || error.error || errorMessage;
+				} catch {
+					errorMessage = `Server error: ${response.status} ${response.statusText}`;
+				}
+				throw new Error(errorMessage);
 			}
 
 			const result = await response.json();
 			alert(`PDF saved successfully: ${result.filename}`);
 		} catch (error) {
 			console.error('Error exporting to PDF:', error);
-			alert('Error exporting to PDF. Please try again.');
+			const message = error instanceof Error ? error.message : 'Error exporting to PDF. Please try again.';
+			alert(`Error exporting to PDF: ${message}`);
 		}
 	}
 
@@ -187,15 +194,22 @@ _Seattle, December 17, 2025_`);
 			});
 
 			if (!response.ok) {
-				const error = await response.json();
-				throw new Error(error.message || 'Failed to generate DOCX');
+				let errorMessage = 'Failed to generate DOCX';
+				try {
+					const error = await response.json();
+					errorMessage = error.message || error.error || errorMessage;
+				} catch {
+					errorMessage = `Server error: ${response.status} ${response.statusText}`;
+				}
+				throw new Error(errorMessage);
 			}
 
 			const result = await response.json();
 			alert(`DOCX saved successfully: ${result.filename}`);
 		} catch (error) {
 			console.error('Error exporting to DOCX:', error);
-			alert('Error exporting to DOCX. Please try again.');
+			const message = error instanceof Error ? error.message : 'Error exporting to DOCX. Please try again.';
+			alert(`Error exporting to DOCX: ${message}`);
 		}
 	}
 
