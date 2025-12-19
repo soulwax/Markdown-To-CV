@@ -316,6 +316,7 @@
 		:global(.cv-document h2 + h3) {
 			page-break-before: avoid;
 			orphans: 3;
+			widows: 3;
 		}
 
 		:global(.cv-document h3) {
