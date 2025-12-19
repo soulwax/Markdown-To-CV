@@ -25,10 +25,41 @@ export async function htmlToDocx(html: string): Promise<Document> {
 	return new Document({
 		sections: [
 			{
-				properties: {},
+				properties: {
+					page: {
+						size: {
+							orientation: 'portrait',
+							width: 11906, // A4 width in twips (210mm)
+							height: 16838 // A4 height in twips (297mm)
+						},
+						margin: {
+							top: 1021, // ~18mm
+							right: 1134, // ~20mm
+							bottom: 1021, // ~18mm
+							left: 1134 // ~20mm
+						}
+					}
+				},
 				children: docElements
 			}
-		]
+		],
+		styles: {
+			default: {
+				document: {
+					run: {
+						font: 'Inter',
+						size: 21, // 10.5pt
+						color: '1f2937'
+					},
+					paragraph: {
+						spacing: {
+							line: 360, // 1.6 line spacing
+							lineRule: 'auto'
+						}
+					}
+				}
+			}
+		}
 	});
 }
 
@@ -57,21 +88,43 @@ function processNodeList(
 
 			switch (tagName) {
 				case 'h1':
+					const h1Runs = parseHTMLInline(element).map((run) => {
+						if (run instanceof TextRun) {
+							return new TextRun({
+								text: (run as any).text || '',
+								bold: true,
+								size: 56, // 28pt
+								color: '111827',
+								font: 'Inter'
+							});
+						}
+						return run;
+					});
 					docElements.push(
 						new Paragraph({
-							children: parseHTMLInline(element),
+							children: h1Runs,
 							heading: HeadingLevel.HEADING_1,
-							spacing: { after: 200 }
+							spacing: { after: 360, before: 0 },
+							border: {
+								bottom: {
+									color: '2563eb',
+									size: 24, // 3px
+									style: 'single'
+								}
+							}
 						})
 					);
 					break;
 				case 'h2':
 					const h2Runs = parseHTMLInline(element).map((run) => {
 						if (run instanceof TextRun) {
-							const runOptions: any = { text: (run as any).text?.toUpperCase() || '' };
-							if ((run as any).bold) runOptions.bold = true;
-							if ((run as any).italics) runOptions.italics = true;
-							return new TextRun(runOptions);
+							return new TextRun({
+								text: ((run as any).text || '').toUpperCase(),
+								bold: true,
+								size: 30, // 15pt
+								color: '111827',
+								font: 'Inter'
+							});
 						}
 						return run;
 					});
@@ -79,16 +132,41 @@ function processNodeList(
 						new Paragraph({
 							children: h2Runs,
 							heading: HeadingLevel.HEADING_2,
-							spacing: { before: 400, after: 200 }
+							spacing: { before: 480, after: 240 },
+							border: {
+								left: {
+									color: '2563eb',
+									size: 320, // 4px
+									style: 'single'
+								},
+								bottom: {
+									color: 'e5e7eb',
+									size: 8,
+									style: 'single'
+								}
+							},
+							indent: { left: 360 }
 						})
 					);
 					break;
 				case 'h3':
+					const h3Runs = parseHTMLInline(element).map((run) => {
+						if (run instanceof TextRun) {
+							return new TextRun({
+								text: (run as any).text || '',
+								bold: true,
+								size: 28, // 14pt
+								color: '111827',
+								font: 'Inter'
+							});
+						}
+						return run;
+					});
 					docElements.push(
 						new Paragraph({
-							children: parseHTMLInline(element),
+							children: h3Runs,
 							heading: HeadingLevel.HEADING_3,
-							spacing: { before: 300, after: 150 }
+							spacing: { before: 360, after: 180 }
 						})
 					);
 					break;
@@ -121,10 +199,23 @@ function processNodeList(
 					break;
 				case 'p':
 					const alignment = getAlignment(element);
+					const pRuns = parseHTMLInline(element).map((run) => {
+						if (run instanceof TextRun) {
+							return new TextRun({
+								text: (run as any).text || '',
+								bold: (run as any).bold,
+								italics: (run as any).italics,
+								color: (run as any).bold ? '111827' : '374151',
+								size: (run as any).bold ? 24 : 21, // 12pt for bold, 10.5pt for regular
+								font: 'Inter'
+							});
+						}
+						return run;
+					});
 					docElements.push(
 						new Paragraph({
-							children: parseHTMLInline(element),
-							spacing: { after: 150 },
+							children: pRuns,
+							spacing: { after: 240, line: 360, lineRule: 'auto' },
 							alignment
 						})
 					);
@@ -134,18 +225,34 @@ function processNodeList(
 					processList(element, docElements, tagName === 'ol');
 					break;
 				case 'blockquote':
+					const blockquoteRuns = parseHTMLInline(element).map((run) => {
+						if (run instanceof TextRun) {
+							return new TextRun({
+								text: (run as any).text || '',
+								italics: true,
+								color: '4b5563',
+								size: 21,
+								font: 'Inter'
+							});
+						}
+						return run;
+					});
 					docElements.push(
 						new Paragraph({
-							children: parseHTMLInline(element),
-							indent: { left: 400 },
+							children: blockquoteRuns,
+							indent: { left: 720 },
+							shading: {
+								type: ShadingType.SOLID,
+								color: 'f9fafb'
+							},
 							border: {
 								left: {
 									color: '2563eb',
-									size: 4,
+									size: 320, // 4px
 									style: 'single'
 								}
 							},
-							spacing: { before: 200, after: 200 }
+							spacing: { before: 240, after: 240, line: 360 }
 						})
 					);
 					break;
@@ -247,6 +354,8 @@ function processList(
 	ordered: boolean
 ) {
 	const items = element.querySelectorAll('li');
+	const isPersonalInfo = element.parentElement?.querySelector('h2:first-of-type') === element.previousElementSibling;
+	
 	items.forEach((item) => {
 		let level = 0;
 		let parent = item.parentElement;
@@ -257,9 +366,23 @@ function processList(
 			parent = parent.parentElement;
 		}
 
+		const listRuns = parseHTMLInline(item).map((run) => {
+			if (run instanceof TextRun) {
+				return new TextRun({
+					text: (run as any).text || '',
+					bold: (run as any).bold,
+					italics: (run as any).italics,
+					color: '374151',
+					size: 21, // 10.5pt
+					font: 'Inter'
+				});
+			}
+			return run;
+		});
+
 		docElements.push(
 			new Paragraph({
-				children: parseHTMLInline(item),
+				children: listRuns,
 				bullet: ordered ? undefined : { level },
 				numbering: ordered
 					? {
@@ -267,7 +390,8 @@ function processList(
 							level: level
 					  }
 					: undefined,
-				spacing: { after: 100 }
+				spacing: { after: 200, line: 360, lineRule: 'auto' },
+				indent: isPersonalInfo ? { left: 0 } : { left: 720, hanging: 360 }
 			})
 		);
 	});
@@ -320,7 +444,20 @@ function parseHTMLInline(element: Element): TextRun[] {
 				case 'strong':
 				case 'b':
 					const boldRuns = parseHTMLInline(el);
-					runs.push(...applyFormatting(boldRuns, { bold: true }));
+					runs.push(
+						...boldRuns.map((run) => {
+							if (run instanceof TextRun) {
+								return new TextRun({
+									text: (run as any).text || '',
+									bold: true,
+									color: '111827',
+									size: 24, // 12pt for bold text
+									font: 'Inter'
+								});
+							}
+							return run;
+						})
+					);
 					break;
 				case 'em':
 				case 'i':
@@ -361,16 +498,26 @@ function parseHTMLInline(element: Element): TextRun[] {
 							new TextRun({
 								text: href,
 								color: '2563eb',
-								underline: {}
+								underline: {},
+								font: 'Inter',
+								size: 21
 							})
 						);
 					} else {
 						runs.push(
 							...linkRuns.map((run) => {
-								const runOptions: any = { ...(run as any) };
-								runOptions.color = '2563eb';
-								runOptions.underline = {};
-								return new TextRun(runOptions);
+								if (run instanceof TextRun) {
+									return new TextRun({
+										text: (run as any).text || '',
+										bold: (run as any).bold,
+										italics: (run as any).italics,
+										color: '2563eb',
+										underline: {},
+										font: 'Inter',
+										size: 21
+									});
+								}
+								return run;
 							})
 						);
 					}
@@ -396,7 +543,20 @@ function parseHTMLInline(element: Element): TextRun[] {
 }
 
 function parseHTMLText(text: string): TextRun[] {
-	return parseInlineFormatting(text);
+	const runs = parseInlineFormatting(text);
+	return runs.map((run) => {
+		if (run instanceof TextRun) {
+			return new TextRun({
+				text: (run as any).text || '',
+				bold: (run as any).bold,
+				italics: (run as any).italics,
+				color: '374151',
+				size: 21,
+				font: 'Inter'
+			});
+		}
+		return run;
+	});
 }
 
 function parseTable(element: Element): Table | null {
@@ -414,12 +574,24 @@ function parseTable(element: Element): Table | null {
 			const tableCells = Array.from(cells).map((cell) => {
 				const cellElement = cell as Element;
 				const isHeaderCell = cellElement.tagName.toLowerCase() === 'th';
-				const cellRuns = parseHTMLInline(cellElement);
+				const cellRuns = parseHTMLInline(cellElement).map((run) => {
+					if (run instanceof TextRun) {
+						return new TextRun({
+							text: (run as any).text || '',
+							bold: isHeaderCell ? true : (run as any).bold,
+							color: isHeaderCell ? '111827' : '374151',
+							size: isHeaderCell ? 24 : 21,
+							font: 'Inter'
+						});
+					}
+					return run;
+				});
 
 				return new TableCell({
 					children: [
 						new Paragraph({
-							children: cellRuns.length > 0 ? cellRuns : [new TextRun({ text: '' })]
+							children: cellRuns.length > 0 ? cellRuns : [new TextRun({ text: '' })],
+							spacing: { after: 120, line: 360 }
 						})
 					],
 					shading: isHeaderCell
@@ -427,7 +599,13 @@ function parseTable(element: Element): Table | null {
 								type: ShadingType.SOLID,
 								color: 'f9fafb'
 						  }
-						: undefined
+						: undefined,
+					margins: {
+						top: 360,
+						bottom: 360,
+						left: 360,
+						right: 360
+					}
 				});
 			});
 
@@ -484,11 +662,22 @@ function parseInlineFormatting(text: string): TextRun[] {
 			break;
 		}
 
-		if (boldStart > currentIndex) {
-			const beforeBold = remaining.substring(currentIndex, boldStart);
-			const italicParts = parseItalic(beforeBold);
-			parts.push(...italicParts);
-		}
+			if (boldStart > currentIndex) {
+				const beforeBold = remaining.substring(currentIndex, boldStart);
+				const italicParts = parseItalic(beforeBold);
+				parts.push(...italicParts.map(run => {
+					if (run instanceof TextRun) {
+						return new TextRun({
+							text: (run as any).text || '',
+							italics: (run as any).italics,
+							color: '374151',
+							size: 21,
+							font: 'Inter'
+						});
+					}
+					return run;
+				}));
+			}
 
 		const boldEnd = remaining.indexOf('**', boldStart + 2);
 		if (boldEnd === -1) {
@@ -499,12 +688,23 @@ function parseInlineFormatting(text: string): TextRun[] {
 		}
 
 		const boldText = remaining.substring(boldStart + 2, boldEnd);
-		parts.push(new TextRun({ text: boldText, bold: true }));
+		parts.push(new TextRun({ 
+			text: boldText, 
+			bold: true,
+			color: '111827',
+			size: 24,
+			font: 'Inter'
+		}));
 		currentIndex = boldEnd + 2;
 	}
 
 	if (parts.length === 0) {
-		parts.push(new TextRun({ text }));
+		parts.push(new TextRun({ 
+			text,
+			color: '374151',
+			size: 21,
+			font: 'Inter'
+		}));
 	}
 
 	return parts;
@@ -520,25 +720,51 @@ function parseItalic(text: string): TextRun[] {
 		if (italicStart === -1) {
 			const rest = text.substring(currentIndex);
 			if (rest) {
-				parts.push(new TextRun({ text: rest }));
+				parts.push(new TextRun({ 
+					text: rest,
+					color: '374151',
+					size: 21,
+					font: 'Inter'
+				}));
 			}
 			break;
 		}
 
-		if (italicStart > currentIndex) {
-			parts.push(new TextRun({ text: text.substring(currentIndex, italicStart) }));
-		}
+			if (italicStart > currentIndex) {
+				parts.push(new TextRun({ 
+					text: text.substring(currentIndex, italicStart),
+					color: '374151',
+					size: 21,
+					font: 'Inter'
+				}));
+			}
 
 		const italicEnd = text.indexOf('*', italicStart + 1);
 		if (italicEnd === -1) {
-			parts.push(new TextRun({ text: text.substring(italicStart) }));
+			parts.push(new TextRun({ 
+				text: text.substring(italicStart),
+				color: '374151',
+				size: 21,
+				font: 'Inter'
+			}));
 			break;
 		}
 
 		const italicText = text.substring(italicStart + 1, italicEnd);
-		parts.push(new TextRun({ text: italicText, italics: true }));
+		parts.push(new TextRun({ 
+			text: italicText, 
+			italics: true,
+			color: '4b5563',
+			size: 21,
+			font: 'Inter'
+		}));
 		currentIndex = italicEnd + 1;
 	}
 
-	return parts.length > 0 ? parts : [new TextRun({ text })];
+	return parts.length > 0 ? parts : [new TextRun({ 
+		text,
+		color: '374151',
+		size: 21,
+		font: 'Inter'
+	})];
 }
