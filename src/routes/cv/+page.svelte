@@ -1,8 +1,8 @@
 <script lang="ts">
+	import { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TextRun } from 'docx';
 	import { marked } from 'marked';
 	import { onMount } from 'svelte';
 	import CVPreview from './CVPreview.svelte';
-	import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
 
 	// Configure marked for synchronous parsing
 	marked.setOptions({
@@ -286,47 +286,91 @@ _Seattle, December 17, 2025_`);
 
 	function parseInlineFormatting(text: string): TextRun[] {
 		const parts: TextRun[] = [];
+		let remaining = text;
+		let currentIndex = 0;
 
-		// Regular expression to match **bold**, *italic*, or plain text
-		// Updated to handle cases where formatting might be adjacent
-		const regex = /(\*\*([^*]+)\*\*|\*([^*]+)\*|([^*]+?)(?=\*\*|\*|$))/g;
-		let match;
-		let lastIndex = 0;
-
-		while ((match = regex.exec(text)) !== null) {
-			if (match[2]) {
-				// Bold text **text**
-				parts.push(
-					new TextRun({
-						text: match[2],
-						bold: true
-					})
-				);
-			} else if (match[3]) {
-				// Italic text *text* (but not if it's part of **)
-				parts.push(
-					new TextRun({
-						text: match[3],
-						italics: true
-					})
-				);
-			} else if (match[4] && match[4].trim()) {
-				// Plain text
-				parts.push(new TextRun({ text: match[4] }));
+		// Process bold text first (**text**)
+		while (currentIndex < remaining.length) {
+			const boldStart = remaining.indexOf('**', currentIndex);
+			
+			if (boldStart === -1) {
+				// No more bold markers, process the rest
+				const rest = remaining.substring(currentIndex);
+				if (rest) {
+					// Check for italic in remaining text
+					const italicParts = parseItalic(rest);
+					parts.push(...italicParts);
+				}
+				break;
 			}
-			lastIndex = match.index + match[0].length;
+
+			// Add text before bold marker
+			if (boldStart > currentIndex) {
+				const beforeBold = remaining.substring(currentIndex, boldStart);
+				const italicParts = parseItalic(beforeBold);
+				parts.push(...italicParts);
+			}
+
+			// Find closing bold marker
+			const boldEnd = remaining.indexOf('**', boldStart + 2);
+			if (boldEnd === -1) {
+				// No closing marker, treat as regular text
+				const rest = remaining.substring(boldStart);
+				const italicParts = parseItalic(rest);
+				parts.push(...italicParts);
+				break;
+			}
+
+			// Add bold text
+			const boldText = remaining.substring(boldStart + 2, boldEnd);
+			parts.push(new TextRun({ text: boldText, bold: true }));
+			currentIndex = boldEnd + 2;
 		}
 
-		// If no matches or there's remaining text, return the text as-is
-		if (parts.length === 0 || lastIndex < text.length) {
-			if (parts.length === 0) {
-				parts.push(new TextRun({ text }));
-			} else if (lastIndex < text.length) {
-				parts.push(new TextRun({ text: text.substring(lastIndex) }));
-			}
+		// If no formatting found, return plain text
+		if (parts.length === 0) {
+			parts.push(new TextRun({ text }));
 		}
 
 		return parts;
+	}
+
+	function parseItalic(text: string): TextRun[] {
+		const parts: TextRun[] = [];
+		let currentIndex = 0;
+
+		while (currentIndex < text.length) {
+			const italicStart = text.indexOf('*', currentIndex);
+			
+			if (italicStart === -1) {
+				// No more italic markers
+				const rest = text.substring(currentIndex);
+				if (rest) {
+					parts.push(new TextRun({ text: rest }));
+				}
+				break;
+			}
+
+			// Add text before italic marker
+			if (italicStart > currentIndex) {
+				parts.push(new TextRun({ text: text.substring(currentIndex, italicStart) }));
+			}
+
+			// Find closing italic marker
+			const italicEnd = text.indexOf('*', italicStart + 1);
+			if (italicEnd === -1) {
+				// No closing marker, treat as regular text
+				parts.push(new TextRun({ text: text.substring(italicStart) }));
+				break;
+			}
+
+			// Add italic text
+			const italicText = text.substring(italicStart + 1, italicEnd);
+			parts.push(new TextRun({ text: italicText, italics: true }));
+			currentIndex = italicEnd + 1;
+		}
+
+		return parts.length > 0 ? parts : [new TextRun({ text })];
 	}
 
 	function clearInput() {
