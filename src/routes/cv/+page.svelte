@@ -286,7 +286,7 @@ _Seattle, December 17, 2025_`;
 		URL.revokeObjectURL(url);
 	}
 
-	let textareaElement: HTMLTextAreaElement;
+	let textareaElement = $state<HTMLTextAreaElement | undefined>(undefined);
 	onMount(() => {
 		if (textareaElement) {
 			textareaElement.focus();
