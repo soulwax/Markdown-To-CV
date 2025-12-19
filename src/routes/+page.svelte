@@ -51,7 +51,7 @@
 	}
 
 	h2 {
-		max-width: 600px;
+		width: 100%;
 		margin: 0 auto 2rem;
 		color: var(--color-text);
 	}
@@ -85,7 +85,6 @@
 		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 		gap: 2rem;
 		margin-top: 3rem;
-		max-width: 800px;
 		width: 100%;
 	}
 

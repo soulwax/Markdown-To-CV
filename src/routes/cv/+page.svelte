@@ -143,7 +143,16 @@ _Seattle, December 17, 2025_`);
 	let viewMode = $state<'split' | 'editor' | 'preview'>('split');
 
 	function exportToPDF() {
+		// Add print-specific class to body for better print styling
+		document.body.classList.add('printing');
+		
+		// Trigger print dialog
 		window.print();
+		
+		// Remove print class after a delay
+		setTimeout(() => {
+			document.body.classList.remove('printing');
+		}, 1000);
 	}
 
 	function clearInput() {
@@ -457,7 +466,7 @@ _Location, Date_"
 
 <style>
 	.container {
-		max-width: 1600px;
+		width: 100%;
 		margin: 0 auto;
 		padding: 2rem;
 		min-height: calc(100vh - 200px);
@@ -743,34 +752,52 @@ _Location, Date_"
 	}
 
 	@media print {
+		/* Hide all UI elements during print */
 		.toolbar,
 		.editor-panel,
 		.header {
-			display: none;
+			display: none !important;
 		}
 
 		.preview-panel {
 			box-shadow: none;
 			border: none;
+			background: white;
 		}
 
 		.panel-header {
-			display: none;
+			display: none !important;
 		}
 
 		.preview-wrapper {
 			border: none;
 			padding: 0;
 			background: white;
+			overflow: visible;
 		}
 
 		.container {
 			padding: 0;
 			max-width: 100%;
+			margin: 0;
 		}
 
 		.editor-container {
 			min-height: auto;
+			display: block;
+		}
+
+		/* Ensure full page usage */
+		body {
+			background: white;
+			margin: 0;
+			padding: 0;
+		}
+
+		/* Optimize for PDF output */
+		* {
+			-webkit-print-color-adjust: exact;
+			print-color-adjust: exact;
 		}
 	}
 </style>

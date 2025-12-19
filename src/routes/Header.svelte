@@ -33,7 +33,7 @@
 	</nav>
 
 	<div class="corner">
-		<a href="https://github.com/sveltejs/kit">
+		<a href="https://github.com/soulwax/markdown-to-cv.git">
 			<img src={github} alt="GitHub" />
 		</a>
 	</div>
