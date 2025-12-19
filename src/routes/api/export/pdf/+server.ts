@@ -284,12 +284,13 @@ export const POST: RequestHandler = async ({ request }) => {
 		const pdfBuffer = await page.pdf({
 			format: 'A4',
 			margin: {
-				top: '20mm',
+				top: '18mm',
 				right: '20mm',
-				bottom: '20mm',
+				bottom: '18mm',
 				left: '20mm'
 			},
-			printBackground: false
+			printBackground: true,
+			preferCSSPageSize: true
 		});
 
 		await browser.close();
