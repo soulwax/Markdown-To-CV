@@ -9,41 +9,127 @@
 		gfm: true
 	});
 
-	let markdownInput = $state(`# John Doe
+	let markdownInput = $state(`# Resume
 
-## Contact
-- Email: john.doe@example.com
-- Phone: +1 (555) 123-4567
-- LinkedIn: linkedin.com/in/johndoe
-- GitHub: github.com/johndoe
+## Personal Information
 
-## Professional Summary
-Experienced software developer with 5+ years of expertise in web development, specializing in modern JavaScript frameworks and cloud technologies.
+- Full Name: John Doe
+- Address: Oakwood Avenue 42
+- City: 90210 Los Angeles
+- Phone: +1 555 123 4567
+- Email: john.developer@email.com
+- Date of Birth: 03.15.1995
+
+---
+
+## About Me
+
+The most important qualities that define me are my ability to learn, adaptability, and reliability in teamwork as well as an independently thinking individual.
+I absolutely love implementing systems and see them as puzzles. My passion lies in full-stack web development and encompasses mobile development; I also love embedded systems.
+
+My approach to new challenges is systematic and analytical. I am passionately committed to expanding my knowledge and staying up-to-date with the latest technology.
+
+This enables me to find innovative solutions and quickly familiarize myself with new technologies and work environments, which makes integrating into teams easy for me. In a team context, I greatly value open communication and constructive feedback.
+
+---
 
 ## Experience
 
-### Senior Software Engineer | Tech Corp | 2021 - Present
-- Led development of microservices architecture serving 1M+ users
-- Implemented CI/CD pipelines reducing deployment time by 60%
-- Mentored junior developers and conducted code reviews
+### TechVision Solutions Inc.
+**Senior Full Stack Developer & Team Lead (*, **)**
+09.2019 – 12.31.2025
 
-### Software Engineer | Startup Inc | 2019 - 2021
-- Developed responsive web applications using React and Node.js
-- Collaborated with cross-functional teams in agile environment
-- Optimized database queries improving performance by 40%
+- * Part-time from 09.2019 to 03.2020
+- ** Full-time from 04.2020
+- (Overlapping with freelancing at Metro Energy Services)
+
+- Led a five-person cross-functional development team for designing, developing, and maintaining complex web applications
+- Active client contact: Consulting on project management, testing, integration, scaling, and deployment
+- Comprehensive expertise in frontend technologies: Vue.js, React, Angular, Node, Spring Boot, and C#
+- Experience with Shopify and Laravel (PHP)
+- Backend development with Node.js, Python, and Java Spring Boot
+- Database design and optimization with PostgreSQL, MSSQL, MongoDB, and Redis, as well as choosing the right ORMs and suitable logging and caching technologies (AWS, Cloudflare)
+- DevOps and cloud infrastructure: CI/CD, Docker, Kubernetes, Azure, AWS
+- Agile methodologies: Scrum and active role as Product Owner
+- Performance optimization, e.g., reducing load times of frontends and APIs through advanced techniques
+- Frontend test automation
+- Architecture and system design: Implementation of scalable microservices architecture
+- Implementation of Domain-Driven Design (DDD) and hexagonal architecture
+- Security: Implementation of OAuth 2.0 and JWT, regular security audits
+- Mentoring and team leadership: Code reviews, internal training, onboarding new employees, pair programming
+- User relations and user stories: Presentations, gathering and prioritizing requirements, focus on UX/UI and accessibility
+- Innovative projects: WebRTC integration for telemedicine, AI integration at multiple levels
+
+---
+
+### Cloud Consultant – Metro Energy Services
+**Freelance Consulting**
+09.2018 – 03.2020
+
+- (Part-time from 09.2019 to 03.2020 at TechVision Solutions Inc.)
+
+- Development of cloud architecture and strategy
+- Evaluation of requirements and use cases for cloud solutions
+- Selection of suitable cloud services and deployment models (private, public, hybrid)
+- Design of robust cloud architectures with focus on security, scalability, and fault tolerance
+- Migration and implementation of cloud-native applications and microservices
+- Implementation of Infrastructure as Code
+- Security and compliance: Implementation of cloud security policies and best practices
+- Ensuring compliance with data protection and regulatory requirements
+- Conducting security audits and risk assessments
+- Optimization and management of cloud environments
+- Technologies used: Cassandra, Serverless Functions, cloud migrations with focus on performance and security
+
+---
 
 ## Education
 
-### Bachelor of Science in Computer Science
-University of Technology | 2015 - 2019
-- GPA: 3.8/4.0
-- Relevant coursework: Data Structures, Algorithms, Software Engineering
+### University of Applied Sciences Boston
+10.2015 – 08.2018
 
-## Skills
-- **Languages**: JavaScript, TypeScript, Python, Java
-- **Frameworks**: React, Vue.js, Node.js, Express
-- **Tools**: Git, Docker, AWS, Kubernetes
-- **Databases**: PostgreSQL, MongoDB, Redis`);
+- Degree: Bachelor of Science – Computer Science (Minor in Embedded Systems)
+- Overall Grade: 1.9 (German grading system, equivalent to B+/A-)
+- Thesis Grade: 1.2 (equivalent to A)
+- Thesis Topic: "Automated Invoice Generation in a Full-Stack Application"
+
+### Lincoln Academy Seattle
+08.2012 – 07.2015
+
+- General Higher Education Entrance Qualification (Abitur)
+- Focus: Natural Sciences
+- Overall Grade: 1.5 (equivalent to A-/B+)
+
+---
+
+## Degrees & Qualifications
+
+- B.Sc. Computer Science with Minor in Embedded Systems
+  - Overall Grade: 1.9
+  - Thesis: 1.2
+- General Higher Education Entrance Qualification
+  - Overall Grade: 1.5
+
+---
+
+## Driver's License
+
+- Class B
+
+---
+
+## Hobbies
+
+- Reading
+- Chess
+- Writing
+- Martial Arts
+- Jogging
+- Hiking
+- Programming
+
+---
+
+_Seattle, December 17, 2025_`);
 
 	let htmlOutput = $derived.by(() => {
 		try {
@@ -65,41 +151,127 @@ University of Technology | 2015 - 2019
 	}
 
 	function loadExample() {
-		markdownInput = `# John Doe
+		markdownInput = `# Resume
 
-## Contact
-- Email: john.doe@example.com
-- Phone: +1 (555) 123-4567
-- LinkedIn: linkedin.com/in/johndoe
-- GitHub: github.com/johndoe
+## Personal Information
 
-## Professional Summary
-Experienced software developer with 5+ years of expertise in web development, specializing in modern JavaScript frameworks and cloud technologies.
+- Full Name: John Doe
+- Address: Oakwood Avenue 42
+- City: 90210 Los Angeles
+- Phone: +1 555 123 4567
+- Email: john.developer@email.com
+- Date of Birth: 03.15.1995
+
+---
+
+## About Me
+
+The most important qualities that define me are my ability to learn, adaptability, and reliability in teamwork as well as an independently thinking individual.
+I absolutely love implementing systems and see them as puzzles. My passion lies in full-stack web development and encompasses mobile development; I also love embedded systems.
+
+My approach to new challenges is systematic and analytical. I am passionately committed to expanding my knowledge and staying up-to-date with the latest technology.
+
+This enables me to find innovative solutions and quickly familiarize myself with new technologies and work environments, which makes integrating into teams easy for me. In a team context, I greatly value open communication and constructive feedback.
+
+---
 
 ## Experience
 
-### Senior Software Engineer | Tech Corp | 2021 - Present
-- Led development of microservices architecture serving 1M+ users
-- Implemented CI/CD pipelines reducing deployment time by 60%
-- Mentored junior developers and conducted code reviews
+### TechVision Solutions Inc.
+**Senior Full Stack Developer & Team Lead (*, **)**
+09.2019 – 12.31.2025
 
-### Software Engineer | Startup Inc | 2019 - 2021
-- Developed responsive web applications using React and Node.js
-- Collaborated with cross-functional teams in agile environment
-- Optimized database queries improving performance by 40%
+- * Part-time from 09.2019 to 03.2020
+- ** Full-time from 04.2020
+- (Overlapping with freelancing at Metro Energy Services)
+
+- Led a five-person cross-functional development team for designing, developing, and maintaining complex web applications
+- Active client contact: Consulting on project management, testing, integration, scaling, and deployment
+- Comprehensive expertise in frontend technologies: Vue.js, React, Angular, Node, Spring Boot, and C#
+- Experience with Shopify and Laravel (PHP)
+- Backend development with Node.js, Python, and Java Spring Boot
+- Database design and optimization with PostgreSQL, MSSQL, MongoDB, and Redis, as well as choosing the right ORMs and suitable logging and caching technologies (AWS, Cloudflare)
+- DevOps and cloud infrastructure: CI/CD, Docker, Kubernetes, Azure, AWS
+- Agile methodologies: Scrum and active role as Product Owner
+- Performance optimization, e.g., reducing load times of frontends and APIs through advanced techniques
+- Frontend test automation
+- Architecture and system design: Implementation of scalable microservices architecture
+- Implementation of Domain-Driven Design (DDD) and hexagonal architecture
+- Security: Implementation of OAuth 2.0 and JWT, regular security audits
+- Mentoring and team leadership: Code reviews, internal training, onboarding new employees, pair programming
+- User relations and user stories: Presentations, gathering and prioritizing requirements, focus on UX/UI and accessibility
+- Innovative projects: WebRTC integration for telemedicine, AI integration at multiple levels
+
+---
+
+### Cloud Consultant – Metro Energy Services
+**Freelance Consulting**
+09.2018 – 03.2020
+
+- (Part-time from 09.2019 to 03.2020 at TechVision Solutions Inc.)
+
+- Development of cloud architecture and strategy
+- Evaluation of requirements and use cases for cloud solutions
+- Selection of suitable cloud services and deployment models (private, public, hybrid)
+- Design of robust cloud architectures with focus on security, scalability, and fault tolerance
+- Migration and implementation of cloud-native applications and microservices
+- Implementation of Infrastructure as Code
+- Security and compliance: Implementation of cloud security policies and best practices
+- Ensuring compliance with data protection and regulatory requirements
+- Conducting security audits and risk assessments
+- Optimization and management of cloud environments
+- Technologies used: Cassandra, Serverless Functions, cloud migrations with focus on performance and security
+
+---
 
 ## Education
 
-### Bachelor of Science in Computer Science
-University of Technology | 2015 - 2019
-- GPA: 3.8/4.0
-- Relevant coursework: Data Structures, Algorithms, Software Engineering
+### University of Applied Sciences Boston
+10.2015 – 08.2018
 
-## Skills
-- **Languages**: JavaScript, TypeScript, Python, Java
-- **Frameworks**: React, Vue.js, Node.js, Express
-- **Tools**: Git, Docker, AWS, Kubernetes
-- **Databases**: PostgreSQL, MongoDB, Redis`;
+- Degree: Bachelor of Science – Computer Science (Minor in Embedded Systems)
+- Overall Grade: 1.9 (German grading system, equivalent to B+/A-)
+- Thesis Grade: 1.2 (equivalent to A)
+- Thesis Topic: "Automated Invoice Generation in a Full-Stack Application"
+
+### Lincoln Academy Seattle
+08.2012 – 07.2015
+
+- General Higher Education Entrance Qualification (Abitur)
+- Focus: Natural Sciences
+- Overall Grade: 1.5 (equivalent to A-/B+)
+
+---
+
+## Degrees & Qualifications
+
+- B.Sc. Computer Science with Minor in Embedded Systems
+  - Overall Grade: 1.9
+  - Thesis: 1.2
+- General Higher Education Entrance Qualification
+  - Overall Grade: 1.5
+
+---
+
+## Driver's License
+
+- Class B
+
+---
+
+## Hobbies
+
+- Reading
+- Chess
+- Writing
+- Martial Arts
+- Jogging
+- Hiking
+- Programming
+
+---
+
+_Seattle, December 17, 2025_`;
 	}
 
 	function downloadMarkdown() {
@@ -224,28 +396,46 @@ University of Technology | 2015 - 2019
 				<textarea
 					bind:this={textareaElement}
 					bind:value={markdownInput}
-					placeholder="# Your Name
+					placeholder="# Resume
 
-## Contact
+## Personal Information
+
+- Full Name: Your Name
+- Address: Your Street Address
+- City: Your City
+- Phone: +1 555 123 4567
 - Email: your.email@example.com
-- Phone: +1 (555) 123-4567
 
-## Professional Summary
-Write a brief summary of your professional background...
+---
+
+## About Me
+
+Write a brief summary about yourself...
+
+---
 
 ## Experience
 
-### Job Title | Company | Date Range
+### Company Name
+**Job Title**
+Date Range
+
 - Key achievement or responsibility
 - Another important point
 
+---
+
 ## Education
 
-### Degree
-Institution | Date Range
+### Institution Name
+Date Range
 
-## Skills
-- **Category**: Skill 1, Skill 2, Skill 3"
+- Degree details
+- Grade information
+
+---
+
+_Location, Date_"
 					class="markdown-input"
 				></textarea>
 			</div>

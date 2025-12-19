@@ -45,8 +45,8 @@
 
 	:global(.cv-document h2) {
 		font-size: 1.5rem;
-		margin-top: 2rem;
-		margin-bottom: 1rem;
+		margin-top: 2.5rem;
+		margin-bottom: 1.25rem;
 		color: #2c3e50;
 		font-weight: 600;
 		letter-spacing: -0.01em;
@@ -60,12 +60,35 @@
 	}
 
 	:global(.cv-document h3) {
-		font-size: 1.125rem;
-		margin-top: 1.25rem;
-		margin-bottom: 0.5rem;
-		color: #34495e;
+		font-size: 1.25rem;
+		margin-top: 2.5rem;
+		margin-bottom: 0.75rem;
+		color: #1a1a1a;
 		font-weight: 600;
 		page-break-after: avoid;
+	}
+
+	/* First h3 after hr should have less top margin */
+	:global(.cv-document hr + * h3),
+	:global(.cv-document hr ~ h3:first-of-type) {
+		margin-top: 1.5rem;
+	}
+
+	/* Style for paragraphs immediately after h3 (job titles and dates) */
+	:global(.cv-document h3 + p) {
+		margin-top: 0.5rem;
+		margin-bottom: 1.25rem;
+		line-height: 1.6;
+	}
+
+	/* Style for bold job titles in paragraphs */
+	:global(.cv-document h3 + p strong) {
+		display: block;
+		font-size: 1.0625rem;
+		margin-bottom: 0.375rem;
+		color: #2c3e50;
+		font-weight: 600;
+		line-height: 1.5;
 	}
 
 	:global(.cv-document p) {
@@ -75,25 +98,76 @@
 		line-height: 1.75;
 	}
 
+	/* Style for date lines in job entries */
+	:global(.cv-document h3 + p:not(:has(strong))) {
+		color: #718096;
+		font-size: 0.9375rem;
+		margin-top: 0.25rem;
+	}
+
+	/* Style italic text (like date signature) */
+	:global(.cv-document em),
+	:global(.cv-document i) {
+		font-style: italic;
+		color: #4a5568;
+		display: block;
+		text-align: right;
+		margin-top: 3rem;
+		padding-top: 2rem;
+		border-top: 1px solid #e2e8f0;
+		font-size: 0.9375rem;
+	}
+
 	:global(.cv-document ul) {
-		margin: 0.75rem 0;
+		margin: 1.25rem 0;
 		padding-left: 1.75rem;
 		list-style-type: disc;
 	}
 
+	/* Lists after job entries should have proper spacing */
+	:global(.cv-document h3 ~ ul) {
+		margin-top: 1rem;
+		margin-bottom: 1.5rem;
+	}
+
 	:global(.cv-document li) {
-		margin: 0.5rem 0;
+		margin: 0.625rem 0;
 		color: #4a5568;
 		font-size: 0.9375rem;
-		line-height: 1.75;
+		line-height: 1.8;
 	}
 
 	:global(.cv-document li::marker) {
 		color: #4075a6;
 	}
 
+	/* Style for nested lists (like job details) */
+	:global(.cv-document ul ul) {
+		margin-top: 0.5rem;
+		margin-bottom: 0.5rem;
+		padding-left: 1.5rem;
+		list-style-type: circle;
+	}
+
+	:global(.cv-document ul ul li) {
+		margin: 0.375rem 0;
+		font-size: 0.9375rem;
+	}
+
+	/* Style for personal information lists */
+	:global(.cv-document h2:first-of-type + ul li) {
+		margin: 0.5rem 0;
+		line-height: 1.6;
+	}
+
 	:global(.cv-document strong) {
 		color: #2c3e50;
+		font-weight: 600;
+	}
+
+	/* Special styling for job titles and important bold text */
+	:global(.cv-document p strong:first-child) {
+		color: #1a1a1a;
 		font-weight: 600;
 	}
 
@@ -136,8 +210,9 @@
 
 	:global(.cv-document hr) {
 		border: none;
-		border-top: 2px solid #e2e8f0;
-		margin: 2rem 0;
+		border-top: 1px solid #e2e8f0;
+		margin: 2.5rem 0;
+		background: none;
 	}
 
 	:global(.cv-document table) {
